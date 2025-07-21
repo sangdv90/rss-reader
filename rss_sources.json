@@ -1,0 +1,70 @@
+{
+  "vnexpress_home": {
+    "name": "VnExpress Trang chủ",
+    "url": "https://vnexpress.net/rss/tin-moi-nhat.rss"
+  },
+  "vnexpress_thoi_su": {
+    "name": "VnExpress Thời sự",
+    "url": "https://vnexpress.net/rss/thoi-su.rss"
+  },
+  "vnexpress_the_gioi": {
+    "name": "VnExpress Thế giới",
+    "url": "https://vnexpress.net/rss/the-gioi.rss"
+  },
+  "vnexpress_kinh_doanh": {
+    "name": "VnExpress Kinh doanh",
+    "url": "https://vnexpress.net/rss/kinh-doanh.rss"
+  },
+  "vnexpress_giai_tri": {
+    "name": "VnExpress Giải trí",
+    "url": "https://vnexpress.net/rss/giai-tri.rss"
+  },
+  "vnexpress_the_thao": {
+    "name": "VnExpress Thể thao",
+    "url": "https://vnexpress.net/rss/the-thao.rss"
+  },
+  "vnexpress_phap_luat": {
+    "name": "VnExpress Pháp luật",
+    "url": "https://vnexpress.net/rss/phap-luat.rss"
+  },
+  "vnexpress_giao_duc": {
+    "name": "VnExpress Giáo dục",
+    "url": "https://vnexpress.net/rss/giao-duc.rss"
+  },
+  "vnexpress_suc_khoe": {
+    "name": "VnExpress Sức khỏe",
+    "url": "https://vnexpress.net/rss/suc-khoe.rss"
+  },
+  "vnexpress_doi_song": {
+    "name": "VnExpress Đời sống",
+    "url": "https://vnexpress.net/rss/doi-song.rss"
+  },
+  "vnexpress_du_lich": {
+    "name": "VnExpress Du lịch",
+    "url": "https://vnexpress.net/rss/du-lich.rss"
+  },
+  "vnexpress_khoa_hoc": {
+    "name": "VnExpress Khoa học",
+    "url": "https://vnexpress.net/rss/khoa-hoc.rss"
+  },
+  "vnexpress_xe": {
+    "name": "VnExpress Xe",
+    "url": "https://vnexpress.net/rss/oto-xe-may.rss"
+  },
+  "vnexpress_y_kien": {
+    "name": "VnExpress Ý kiến",
+    "url": "https://vnexpress.net/rss/y-kien.rss"
+  },
+  "vnexpress_tam_su": {
+    "name": "VnExpress Tâm sự",
+    "url": "https://vnexpress.net/rss/tam-su.rss"
+  },
+  "vnexpress_cuoi": {
+    "name": "VnExpress Cười",
+    "url": "https://vnexpress.net/rss/cuoi.rss"
+  },
+  "vnexpress_xem_nhieu": {
+    "name": "VnExpress Xem nhiều",
+    "url": "https://vnexpress.net/rss/xem-nhieu.rss"
+  }
+}

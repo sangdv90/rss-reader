@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS News Feed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            transition: all 0.3s ease;
+        }
+        #tts-toggle:active {
+            cursor: grabbing;
+        }
+
+        #tts-toggle {
+            position: absolute;
+            top: 60px;
+            left: 40px; /* Đẩy sang phải một chút để không đè sidebar-toggle */
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 21;
+            transition: background-color 0.3s ease;
+        }
+
+        #tts-toggle:hover {
+            background-color: #218838;
+        }
+
+        #article-image img {
+            height: 70vh;        /* Chiều cao = 70% chiều cao màn hình */
+            width: auto;         /* Tự co chiều ngang giữ tỷ lệ */
+            display: block;
+            margin: 0 auto 20px; /* Căn giữa + cách dưới 20px */
+            object-fit: contain; /* Giữ tỷ lệ ảnh */
+        }
+
+        /* CHƯA ĐỌC */
+        .timeline-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+            background-color: #fff9f0;        /* vàng pastel nhạt */
+            color: #b7791f;                   /* cam đất */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+
+        /* Hover cho chưa đọc */
+        .timeline-item:hover {
+            background-color: #fff3e0;        /* hover nhẹ hơn */
+        }
+
+        /* ĐÃ ĐỌC */
+        .timeline-item.read {
+            background-color: #f0f4f8;        /* xám-xanh nhạt */
+            color: #2c5282;                   /* xanh navy */
+        }
+
+        /* Biểu tượng */
+        .timeline-item .status-icon {
+            font-size: 1.2em;
+        }
+        .timeline-item.read {
+            background-color: #e6f4ea; /* xanh nhạt dịu mắt */
+            color: #116943; /* xanh đậm */
+            position: relative;
+        }
+
+        .timeline-item.read::before {
+            content: "✔";
+            color: green;
+            font-size: 1rem;
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+
+        .article-list {
+            width: 30%;
+            border-right: 2px solid #ddd;
+            padding-right: 20px;
+            height: 100vh;
+            overflow-y: auto;
+            padding-top: 20px;
+            position: relative;
+            transition: width 0.3s ease;
+        }
+        .timeline {
+            list-style: none;
+            padding: 0;
+        }
+        .article-details {
+            width: 70%;
+            padding-left: 20px;
+            padding-top: 20px;
+            height: 100vh;
+            overflow-y: auto;
+            position: relative;
+            text-align: center;
+            padding: 20px;
+            transition: width 0.3s ease;
+        }
+        .article-details img {
+            max-width: 80%;
+            height: auto;
+            margin: 20px 0;
+        }
+        .date {
+            color: gray;
+            font-size: 0.9em;
+        }
+        .date-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .date-content {
+            display: block;
+            padding-left: 20px;
+        }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            background-color: #fff;
+            padding: 10px 0;
+            z-index: 20;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .navigator {
+            position: absolute;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            z-index: 10;
+        }
+        .navigator-up {
+            top: 10px;
+            right: 10px;
+        }
+
+        .navigator-down {
+            bottom: 10px;
+            right: 10px;
+        }
+        .article-content {
+            font-size: 1.1em;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .article-title {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .article-date {
+            color: #888;
+            font-size: 1em;
+            margin-bottom: 20px;
+        }
+
+        /* Updated button styling */
+        #sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1em;
+            cursor: pointer;
+            z-index: 20;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        #sidebar-toggle:hover {
+            background-color: #0056b3;
+        }
+
+        /* Auto Scroll Button Styling */
+        #auto-scroll-toggle {
+            position: absolute;
+            left: 40px;
+            top: 150px;
+            transform: translateY(-50%);
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            z-index: 20;
+        }
+
+        #auto-scroll-toggle:hover {
+            background-color: #0056b3;
+        }
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background-color: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+
+        #auto-scroll-progress {
+            height: 100%;
+            width: 0%;
+            background-color: #28a745;
+            transition: width linear;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="article-list" id="article-list">
+    <div class="sticky-header">
+        <h2>Latest News Timeline</h2>
+        <div style="margin-top: 10px;">
+            <label for="source" style="font-weight: bold;">Nguồn:</label>
+            <select name="source" id="source" onchange="onSourceChange()" style="width: 100%; padding: 5px; margin-top: 5px;">
+                {% for key, info in sources.items() %}
+                    <option value="{{ key }}" {% if key == source_key %}selected{% endif %}>{{ info.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="timeline">
+            {% for date in sorted_dates %}
+            <div class="date-section">
+                <div class="date-title" onclick="toggleDate('{{ date }}')">{{ date }}</div>
+                <div id="{{ date }}" class="date-content">
+                    <ul>
+                        {% for article in articles[date] %}
+                        <li class="timeline-item" onclick="showArticle('{{ article.title }}', `{{ article.description }}`, `{{ article.published }}`, `{{ article.image }}`, `{{ article.link }}`)">
+                            <span class="status-icon">⭕</span>
+                            <div>
+                                {{ article.title }}
+                                <div class="date">{{ article.published }}</div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="article-details" id="article-details">
+        <button id="sidebar-toggle" onclick="toggleSidebar()">Hide Articles</button>
+        <button id="tts-toggle" onclick="toggleTTS()">🔊</button>
+        <button id="auto-scroll-toggle" onclick="toggleAutoScroll()">🔁</button>
+        <button class="navigator navigator-up" onclick="navigateArticle('prev')">&#8593;</button>
+        <button class="navigator navigator-down" onclick="navigateArticle('next')">&#8595;</button>
+
+        <div class="article-content">
+            <div id="article-image" style="display: none;"></div>
+            <h2 id="article-title">Select an article</h2>
+            <div id="article-date" class="article-date"></div>
+            <div id="article-content-text" class="article-content"></div>
+            <div id="article-link" style="margin-top: 20px;"></div>
+        </div>
+        <div class="progress-container">
+        <div id="auto-scroll-progress"></div>
+        </div>
+
+    </div>
+
+    <script>
+        var articles = [];
+        var currentArticleIndex = 0;
+        var sidebarVisible = true;
+        var autoScrollEnabled = false;
+        var scrollTimeout;
+        let ttsEnabled = true;
+        
+        function startProgressBar(durationMs) {
+            const bar = document.getElementById("auto-scroll-progress");
+            bar.style.transition = `none`;
+            bar.style.width = "0%";
+            // Kích hoạt lại transition
+            setTimeout(() => {
+                bar.style.transition = `width ${durationMs}ms linear`;
+                bar.style.width = "100%";
+            }, 50);
+        }
+
+        function resetProgressBar() {
+            const bar = document.getElementById("auto-scroll-progress");
+            bar.style.transition = "none";
+            bar.style.width = "0%";
+        }
+
+
+        function toggleTTS() {
+            ttsEnabled = !ttsEnabled;
+            const btn = document.getElementById("tts-toggle");
+
+            if (ttsEnabled) {
+                btn.innerText = "🔊";
+                displayArticle(); // đọc lại bài hiện tại nếu bật lại
+            } else {
+                btn.innerText = "🔇";
+                speechSynthesis.cancel(); // ngắt đọc nếu đang đọc
+            }
+        }
+
+        // Toggle visibility of date section
+        function toggleDate(date) {
+            var dateContent = document.getElementById(date);
+            dateContent.classList.toggle('open');
+        }
+
+        // Show the clicked article's details
+        function showArticle(title, description, published, image, link) {
+            articles = [];
+            currentArticleIndex = -1;
+            {% for date in sorted_dates %}
+                {% for article in articles[date] %}
+                    articles.push({
+                        title: '{{ article.title }}',
+                        description: `{{ article.description }}`,
+                        content: `{{ article.description }}`,
+                        published: '{{ article.published }}',
+                        image: `{{ article.image }}`,
+                        link: `{{ article.link }}`
+                    });
+                {% endfor %}
+            {% endfor %}
+
+            currentArticleIndex = articles.findIndex(article => article.title === title);
+            displayArticle();
+            // Đánh dấu bài đã đọc trong localStorage
+            const readKey = 'read-' + title;
+            localStorage.setItem(readKey, '1');
+
+            // Tìm tất cả item có tiêu đề khớp → đánh dấu là đã đọc + đổi icon
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                const titleText = item.innerText.trim();
+                if (titleText.includes(title)) {
+                    item.classList.add('read');
+                    const icon = item.querySelector('.status-icon');
+                    if (icon) icon.innerText = '✅';
+                }
+            });
+
+        }
+        
+        function markAsRead(title) {
+            const allItems = document.querySelectorAll('.timeline-item');
+            allItems.forEach(item => {
+                const itemTitle = item.querySelector('div')?.innerText.trim();
+                if (itemTitle === title.trim()) {
+                    item.classList.add('read');
+                }
+            });
+        }
+
+        // Display the article content in the right column
+        function displayArticle() {
+            if (currentArticleIndex >= 0 && currentArticleIndex < articles.length) {
+                var article = articles[currentArticleIndex];
+                document.getElementById("article-title").innerText = decodeHtml(article.title);
+                const currentTitle = decodeHtml(article.title); // Giữ lại để đánh dấu sau
+                if (ttsEnabled) {
+                    speakArticle(article.title, article.description, () => {
+                        markAsRead(currentTitle);
+                        if (autoScrollEnabled) {
+                            autoScrollNext();
+                        }
+                    });
+                } else {
+                    markAsRead(currentTitle); // vẫn đánh dấu đã đọc
+                    if (autoScrollEnabled) {
+                        autoScrollNext();
+                    }
+                }
+
+
+                document.getElementById("article-date").innerText = article.published;
+                document.getElementById("article-content-text").innerHTML = article.description;
+
+                // Place the article link before the image
+                var linkElement = document.getElementById("article-link");
+                linkElement.innerHTML = `<a href="${article.link}" target="_blank">Read full article</a>`;
+
+                var imageElement = document.getElementById("article-image");
+                if (article.image) {
+                    imageElement.innerHTML = `<img src="${article.image}" alt="Article Image">`;
+                    imageElement.style.display = "block";
+                } else {
+                    imageElement.style.display = "none";
+                }
+            }
+        }
+
+        // Navigate through articles
+        function navigateArticle(direction) {
+            if (direction === 'prev' && currentArticleIndex > 0) {
+                currentArticleIndex--;
+            } else if (direction === 'next' && currentArticleIndex < articles.length - 1) {
+                currentArticleIndex++;
+            }
+
+            displayArticle();
+
+            // Đánh dấu là đã đọc
+            const currentArticle = articles[currentArticleIndex];
+            const readKey = 'read-' + currentArticle.title;
+            localStorage.setItem(readKey, '1');
+
+            // Tìm và đánh dấu class + biểu tượng
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                const titleText = item.innerText.trim();
+                if (titleText.includes(currentArticle.title)) {
+                    item.classList.add('read');
+                    const icon = item.querySelector('.status-icon');
+                    if (icon) icon.innerText = '✅';
+                }
+            });
+        }
+
+
+        // Toggle sidebar visibility
+        function toggleSidebar() {
+            sidebarVisible = !sidebarVisible;
+            if (sidebarVisible) {
+                document.getElementById("article-list").style.display = "block";
+                document.getElementById("article-details").style.width = "70%"; // Keep 70% width when visible
+                document.getElementById("sidebar-toggle").innerText = "Hide Articles";
+            } else {
+                document.getElementById("article-list").style.display = "none";
+                document.getElementById("article-details").style.width = "100%"; // Take full width when hidden
+                document.getElementById("sidebar-toggle").innerText = "Show Articles";
+            }
+        }
+
+        // Toggle auto scroll on and off
+        function toggleAutoScroll() {
+            autoScrollEnabled = !autoScrollEnabled;
+            const button = document.getElementById("auto-scroll-toggle");
+
+            if (autoScrollEnabled) {
+                button.innerText = "⏹️";         // Biểu tượng auto-scroll
+                button.title = "Tự động đọc và chuyển bài";
+                autoScrollNext();                // Gọi đọc bài tiếp theo
+            } else {
+                button.innerText = "🔁";         // Biểu tượng manual              
+                button.title = "Chế độ thủ công (tự đọc tắt)";
+                clearTimeout(scrollTimeout);     // Dừng auto scroll  
+                resetProgressBar();
+                speechSynthesis.cancel();        // Dừng giọng đọc nếu đang đọc
+            }
+        }
+
+        
+        function autoScrollNext() {
+            if (currentArticleIndex < articles.length - 1) {
+                startProgressBar(2000); // ví dụ: 2 giây
+                scrollTimeout = setTimeout(() => {
+                    currentArticleIndex++;
+                    displayArticle();
+                }, 2000); // delay 2s sau khi đọc xong
+            }
+        }
+
+        // Auto scroll to next article after 2 seconds when reaching the bottom
+        function autoScroll() {
+            if (autoScrollEnabled && currentArticleIndex < articles.length - 1) {
+                if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
+                    setTimeout(function () {
+                        currentArticleIndex++;
+                        displayArticle();
+                        autoScroll(); // Continue auto-scrolling
+                    }, 10000); // 2 seconds delay
+                }
+            }
+        }
+        
+        function onSourceChange() {
+            const selected = document.getElementById("source").value;
+            window.location.href = `?source=${selected}`;
+        }
+
+        // Initialize and display the first article by default
+        function initializePage() {
+            {% for date in sorted_dates %}
+                {% for article in articles[date] %}
+                    articles.push({
+                        title: '{{ article.title }}',
+                        description: `{{ article.description }}`,
+                        content: `{{ article.description }}`,
+                        published: '{{ article.published }}',
+                        image: `{{ article.image }}`,
+                        link: `{{ article.link }}`
+                    });
+                {% endfor %}
+            {% endfor %}
+            
+            // Display the first article if available
+            if (articles.length > 0) {
+                currentArticleIndex = 0;
+                displayArticle();
+                // Gán class "read" cho các bài đã đọc
+                setTimeout(() => {
+                    document.querySelectorAll('.timeline-item').forEach(item => {
+                        const titleText = item.innerText.trim();
+                        if (localStorage.getItem('read-' + titleText)) {
+                            item.classList.add('read');
+                            const icon = item.querySelector('.status-icon');
+                            if (icon) icon.innerText = '✅';
+                        } else {
+                            const icon = item.querySelector('.status-icon');
+                            if (icon) icon.innerText = '⭕';
+                        }
+                    });
+                }, 100);
+
+
+            }
+        }
+
+        // Keyboard navigation: Up arrow for previous, Down arrow for next, Left arrow to hide, Right arrow to show
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "ArrowUp") {
+                navigateArticle("prev");
+            } else if (event.key === "ArrowDown") {
+                navigateArticle("next");
+            } else if (event.key === "ArrowLeft" && sidebarVisible) {
+                toggleSidebar(); // Hide left column only if it's visible
+            } else if (event.key === "ArrowRight" && !sidebarVisible) {
+                toggleSidebar(); // Show left column only if it's hidden
+            }
+        });
+        
+        function stripHtmlTags(html) {
+            var div = document.createElement("div");
+            div.innerHTML = html;
+            return div.textContent || div.innerText || "";
+        }
+
+        // Decode HTML entities
+        function decodeHtml(html) {
+            var txt = document.createElement("textarea");
+            txt.innerHTML = html;
+            return txt.value;
+        }
+        
+        function speakArticle(title, description, onEndCallback) {
+            if (!window.speechSynthesis) {
+                if (onEndCallback) onEndCallback();
+                return;
+            }
+
+            function doSpeak() {
+                speechSynthesis.cancel();
+
+                const fullText = `${title}. ${stripHtmlTags(description)}`;
+                const utterance = new SpeechSynthesisUtterance(fullText);
+                utterance.lang = 'vi-VN';
+                utterance.rate = 0.9;
+
+                const voices = speechSynthesis.getVoices();
+                const viVoice = voices.find(v => v.lang === 'vi-VN');
+                if (viVoice) utterance.voice = viVoice;
+
+                if (onEndCallback) {
+                    utterance.onend = onEndCallback;
+                }
+
+                speechSynthesis.speak(utterance);
+            }
+
+            if (speechSynthesis.getVoices().length === 0) {
+                speechSynthesis.onvoiceschanged = doSpeak;
+            } else {
+                doSpeak();
+            }
+
+        }
+        
+        // Initialize page content
+        initializePage();
+    
+    </script>
+
+</body>
+</html>
